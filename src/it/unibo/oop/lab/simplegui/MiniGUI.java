@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Random;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -33,9 +34,13 @@ public class MiniGUI {
      */
     public MiniGUI() {
         final JPanel canvas = new JPanel();
+        final JPanel innerPanel = new JPanel();
+        final BoxLayout innerLayout = new BoxLayout(innerPanel, BoxLayout.X_AXIS);
         canvas.setLayout(new BorderLayout());
+        innerPanel.setLayout(innerLayout);
+        canvas.add(innerPanel, BorderLayout.CENTER);
         final JButton write = new JButton("Print a random number on standard output");
-        canvas.add(write, BorderLayout.CENTER);
+        innerPanel.add(write);
         frame.setContentPane(canvas);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         /*
