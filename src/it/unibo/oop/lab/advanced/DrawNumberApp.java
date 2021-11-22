@@ -1,34 +1,86 @@
 package it.unibo.oop.lab.advanced;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
+
+
 /**
  */
 public final class DrawNumberApp implements DrawNumberViewObserver {
 
-    private static final int MIN = 0;
-    private static final int MAX = 100;
-    private static final int ATTEMPTS = 10;
     private final DrawNumber model;
-    private final DrawNumberView view;
+    private final List<DrawNumberView> views;
+
 
     /**
      * 
+     * @param configFile
+     * 
+     * @param views
      */
-    public DrawNumberApp() {
-        this.model = new DrawNumberImpl(MIN, MAX, ATTEMPTS);
-        this.view = new DrawNumberViewImpl();
-        this.view.setObserver(this);
-        this.view.start();
+    public DrawNumberApp(final String configFile, final DrawNumberView... views) {
+        this.views = Arrays.asList(Arrays.copyOf(views, views.length));
+        for (final var view: views) {
+            view.setObserver(this);
+            view.start();
+        }
+        final Configuration.Builder configurationBuilder = new Configuration.Builder();
+        try (var contents = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(configFile)))){
+            for (var configLine = contents.readLine(); configLine != null; configLine = contents.readLine()) {
+                final String[] lineElements = configLine.split(":");
+                if (lineElements.length == 2) {
+                    final int value = Integer.parseInt(lineElements[1].trim());
+                    if (lineElements[0].contains("max")) {
+                        configurationBuilder.setMax(value);
+                    } else if (lineElements[0].contains("min")) {
+                        configurationBuilder.setMin(value);
+                    } else if (lineElements[0].contains("attempts")) {
+                        configurationBuilder.setAttempts(value);
+                    }
+                } else {
+                    displayError("I cannot understand \"" + configLine + '"');
+                }
+            } 
+        } catch (IOException | NumberFormatException e) {
+            displayError(e.getMessage());
+        }
+        final Configuration configuration = configurationBuilder.build();
+        if (configuration.isConsistent()) {
+            this.model = new DrawNumberImpl(configuration);
+        } else {
+            displayError("Inconsistent configuration: "
+                    + "min: " + configuration.getMin() + ", "
+                    + "max: " + configuration.getMax() + ", "
+                    + "attempts: " + configuration.getAttempts() + ". Using default instead .");
+            this.model = new DrawNumberImpl(new Configuration.Builder().build());
+        }
+    }
+
+    private void displayError(final String err) {
+        for (final DrawNumberView view : views) {
+            view.displayError(err);
+        }
     }
 
     @Override
     public void newAttempt(final int n) {
         try {
             final DrawResult result = model.attempt(n);
-            this.view.result(result);
+            for (final DrawNumberView view : views) {
+                view.result(result);
+            }
         } catch (IllegalArgumentException e) {
-            this.view.numberIncorrect();
+            for (final DrawNumberView view : views) {
+                view.numberIncorrect();
+            }
         } catch (AttemptsLimitReachedException e) {
-            view.limitsReached();
+            for (final DrawNumberView view : views) {
+                view.limitsReached();
+            }
         }
     }
 
@@ -46,8 +98,12 @@ public final class DrawNumberApp implements DrawNumberViewObserver {
      * @param args
      *            ignored
      */
-    public static void main(final String... args) {
-        new DrawNumberApp();
+    public static void main(final String... args) throws FileNotFoundException {
+        new DrawNumberApp("config.yml", 
+                new DrawNumberViewImpl(), 
+                new DrawNumberViewImpl(), 
+                new PrintStreamView(System.out),
+                new PrintStreamView("output.log"));
     }
 
 }

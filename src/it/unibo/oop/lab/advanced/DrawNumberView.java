@@ -29,5 +29,10 @@ public interface DrawNumberView {
      * Tells the user that the match is lost.
      */
     void limitsReached();
+    /**
+     * 
+     * @param message shows the message error
+     */
+    void displayError(String message);
 
 }
