@@ -29,17 +29,17 @@ public final class DrawNumberApp implements DrawNumberViewObserver {
             view.start();
         }
         final Configuration.Builder configurationBuilder = new Configuration.Builder();
-        try (var contents = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(configFile)))){
+        try (var contents = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(configFile)))) {
             for (var configLine = contents.readLine(); configLine != null; configLine = contents.readLine()) {
                 final String[] lineElements = configLine.split(":");
                 if (lineElements.length == 2) {
                     final int value = Integer.parseInt(lineElements[1].trim());
                     if (lineElements[0].contains("max")) {
-                        configurationBuilder.setMax(value);
+                        configurationBuilder.newMax(value);
                     } else if (lineElements[0].contains("min")) {
-                        configurationBuilder.setMin(value);
+                        configurationBuilder.newMin(value);
                     } else if (lineElements[0].contains("attempts")) {
-                        configurationBuilder.setAttempts(value);
+                        configurationBuilder.newAttempts(value);
                     }
                 } else {
                     displayError("I cannot understand \"" + configLine + '"');

@@ -42,7 +42,7 @@ public final class Configuration {
         return attempts > 0 && min < max;
     }
 
-    public class Builder {
+    public static class Builder {
         private static final int MAX = 100;
         private static final int MIN = 0;
         private static final int ATTEMPTS = 10;
@@ -57,7 +57,7 @@ public final class Configuration {
          * @param min value
          * @return this builder
          */
-        public Builder setMin(final int min) {
+        public Builder newMin(final int min) {
             this.min = min;
             return this;
         }
@@ -67,7 +67,7 @@ public final class Configuration {
          * @param max value
          * @return this builder
          */
-        public Builder setMax(final int max) {
+        public Builder newMax(final int max) {
             this.max = max;
             return this;
         }
@@ -77,16 +77,16 @@ public final class Configuration {
          * @param attempt
          * @return this builder
          */
-        public Builder setAttempts(final int attempt) {
+        public Builder newAttempts(final int attempt) {
             this.attempts = attempt;
             return this;
         }
 
         public final Configuration build() {
-            if (consumed) {
+            if (this.consumed) {
                 throw new IllegalStateException("The Builder can only be udes once");
             }
-            consumed = true;
+            this.consumed = true;
             return new Configuration(max, min, attempts);
         }
     }
